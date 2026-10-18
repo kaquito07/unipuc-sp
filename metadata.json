@@ -1,0 +1,6 @@
+{
+  "name": "Carteirinha Nostalgia",
+  "description": "App web mobile-first de carteirinha universitária nostálgica entre amigos com notas de matérias, carteirinha 90° frente e verso, ofertas e QR Code.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
