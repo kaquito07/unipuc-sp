@@ -120,58 +120,78 @@ export const DEFAULT_OFFERS: OfferItem[] = [
   },
 ];
 
-// High quality sample 3x4 portraits as SVG data URIs
-export const SAMPLE_PORTRAITS = [
-  {
-    id: 'aluno1',
-    label: 'Foto Universitário (Masculino)',
-    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23dbeafe"/><stop offset="100%" stop-color="%23bfdbfe"/></linearGradient></defs><rect width="300" height="400" fill="url(%23bg)"/><circle cx="150" cy="140" r="65" fill="%23fbcfe8"/><path d="M90 120 C90 70 210 70 210 120 C210 85 180 65 150 65 C120 65 90 85 90 120 Z" fill="%23475569"/><circle cx="130" cy="135" r="6" fill="%231e293b"/><circle cx="170" cy="135" r="6" fill="%231e293b"/><path d="M135 165 Q150 178 165 165" stroke="%23be185d" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M70 380 C70 250 230 250 230 380 Z" fill="%231e3a8a"/><polygon points="135,250 150,290 165,250 150,240" fill="%23ffffff"/><polygon points="144,285 156,285 152,360 148,360" fill="%23dc2626"/></svg>',
-  },
-  {
-    id: 'aluna1',
-    label: 'Foto Universitária (Feminina)',
-    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23fed7aa"/><stop offset="100%" stop-color="%23fdba74"/></linearGradient></defs><rect width="300" height="400" fill="url(%23bg)"/><path d="M80 140 C80 50 220 50 220 140 C220 230 230 270 230 280 L70 280 C70 270 80 230 80 140 Z" fill="%23334155"/><circle cx="150" cy="140" r="65" fill="%23fed7aa"/><circle cx="130" cy="135" r="6" fill="%231e293b"/><circle cx="170" cy="135" r="6" fill="%231e293b"/><path d="M135 165 Q150 180 165 165" stroke="%23c2410c" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M70 380 C70 250 230 250 230 380 Z" fill="%230284c7"/><circle cx="150" cy="270" r="16" fill="%23fcd34d"/></svg>',
-  },
-];
-
 const STORAGE_KEYS = {
-  USER_PROFILE: 'carteirinha_nostalgia_user_profile',
-  IS_LOGGED_IN: 'carteirinha_nostalgia_logged_in',
+  PROFILES_MAP: 'carteirinha_nostalgia_profiles_map',
+  ACTIVE_USER_ID: 'carteirinha_nostalgia_active_user_id',
   OFFERS: 'carteirinha_nostalgia_offers',
-  REGISTERED_USERS: 'carteirinha_nostalgia_registered_users',
 };
 
-export const getStoredProfile = (): StudentProfile | null => {
+export const getProfileKey = (nome: string, sobrenome: string): string => {
+  return `${nome.trim().toLowerCase()}_${sobrenome.trim().toLowerCase()}`;
+};
+
+export const formatRA = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (/^ra/i.test(trimmed)) {
+    return `RA${trimmed.slice(2).trim()}`;
+  }
+  return `RA${trimmed}`;
+};
+
+export const getAllStoredProfiles = (): Record<string, StudentProfile> => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-    if (!raw) return null;
+    const raw = localStorage.getItem(STORAGE_KEYS.PROFILES_MAP);
+    if (!raw) return {};
     return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+};
+
+export const findProfile = (nome: string, sobrenome: string): StudentProfile | null => {
+  const key = getProfileKey(nome, sobrenome);
+  const profiles = getAllStoredProfiles();
+  return profiles[key] || null;
+};
+
+export const saveProfileToStorage = (profile: StudentProfile): void => {
+  try {
+    const key = getProfileKey(profile.nome, profile.sobrenome);
+    const profiles = getAllStoredProfiles();
+    profiles[key] = profile;
+    localStorage.setItem(STORAGE_KEYS.PROFILES_MAP, JSON.stringify(profiles));
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_USER_ID, key);
+  } catch (e) {
+    console.error('Error saving profile to storage', e);
+  }
+};
+
+export const getActiveProfile = (): StudentProfile | null => {
+  try {
+    const activeKey = localStorage.getItem(STORAGE_KEYS.ACTIVE_USER_ID);
+    if (!activeKey) return null;
+    const profiles = getAllStoredProfiles();
+    return profiles[activeKey] || null;
   } catch {
     return null;
   }
 };
 
-export const saveStoredProfile = (profile: StudentProfile): void => {
+export const setActiveUserId = (nome: string, sobrenome: string): void => {
   try {
-    localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
+    const key = getProfileKey(nome, sobrenome);
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_USER_ID, key);
   } catch (e) {
-    console.error('Error saving profile to localStorage', e);
+    console.error('Error setting active user', e);
   }
 };
 
-export const isUserLoggedIn = (): boolean => {
+export const clearActiveSession = (): void => {
   try {
-    return localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN) === 'true';
-  } catch {
-    return false;
-  }
-};
-
-export const setLoggedInState = (loggedIn: boolean): void => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, loggedIn ? 'true' : 'false');
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_USER_ID);
   } catch (e) {
-    console.error('Error setting login state', e);
+    console.error('Error clearing active session', e);
   }
 };
 

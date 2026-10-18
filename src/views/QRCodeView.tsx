@@ -12,7 +12,7 @@ export const QRCodeView: React.FC<QRCodeViewProps> = ({ profile, onOpenQRModal }
   const [copied, setCopied] = React.useState(false);
 
   const handleShare = () => {
-    const text = `🎓 Carteirinha Nostalgia: ${profile.nome} ${profile.sobrenome} - ${profile.curso} (${profile.matricula}). "Turma de sempre! 🎓"`;
+    const text = `🎓 Carteirinha Nostalgia: ${profile.nome} ${profile.sobrenome} - ${profile.curso} (${profile.matricula}). "4ºB"`;
     navigator.clipboard?.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -74,7 +74,7 @@ export const QRCodeView: React.FC<QRCodeViewProps> = ({ profile, onOpenQRModal }
           className="mt-5 w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Sparkles size={14} />
-          Simular Leitura do QR Code
+          Ver
         </button>
       </div>
 
@@ -89,7 +89,7 @@ export const QRCodeView: React.FC<QRCodeViewProps> = ({ profile, onOpenQRModal }
           exibida a mensagem oficial de recordação da nossa turma:
         </p>
         <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 text-center">
-          "Turma de sempre! 🎓"
+          "4ºB"
         </div>
       </div>
 

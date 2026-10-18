@@ -11,7 +11,7 @@ export const QRCodeVector: React.FC<QRCodeVectorProps> = ({
   size = 64,
   className = '',
   onClick,
-  title = 'QR Code - Turma de sempre! 🎓',
+  title = 'QR Code - 4ºB',
 }) => {
   // Deterministic 21x21 QR Matrix representation
   const matrix: number[][] = [

@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { StudentProfile } from './types/student';
 import {
-  getStoredProfile,
-  saveStoredProfile,
-  isUserLoggedIn,
-  setLoggedInState,
-  SAMPLE_PORTRAITS,
+  getActiveProfile,
+  saveProfileToStorage,
+  clearActiveSession,
 } from './utils/storage';
 import { Header } from './components/Header';
 import { BottomNav, TabType } from './components/BottomNav';
@@ -15,62 +13,48 @@ import { OffersView } from './views/OffersView';
 import { QRCodeView } from './views/QRCodeView';
 import { LoginView } from './views/LoginView';
 import { QRCodeModal } from './components/QRCodeModal';
-import { EditProfileModal } from './components/EditProfileModal';
+import { SettingsModal } from './components/SettingsModal';
+import { Settings } from 'lucide-react';
 
 export default function App() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [isLogged, setIsLogged] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<TabType>('carteirinha');
-  
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+
   // Modals
   const [isQRModalOpen, setIsQRModalOpen] = useState<boolean>(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
-  // Initialize from localStorage
+  // Load active session from localStorage (NO DEFAULT PROFILES, NO AUTO LOGIN)
   useEffect(() => {
-    const savedProfile = getStoredProfile();
-    const loggedIn = isUserLoggedIn();
-
-    if (savedProfile && loggedIn) {
-      setProfile(savedProfile);
+    const active = getActiveProfile();
+    if (active) {
+      setProfile(active);
       setIsLogged(true);
-    } else if (savedProfile && !loggedIn) {
-      setProfile(savedProfile);
-      setIsLogged(false);
     } else {
-      // Default initial mock profile if fresh visitor
-      const defaultProfile: StudentProfile = {
-        nome: 'Kaique',
-        sobrenome: 'Bezerra Deus',
-        curso: 'Ciências Econômicas',
-        matricula: 'RA00223241',
-        validade: '06/2026',
-        semestre: '5º semestre',
-        fotoUrl: SAMPLE_PORTRAITS[0].url,
-        sponsorLogoUrl: null,
-        faculdadeNome: 'PUC-SP',
-      };
-      setProfile(defaultProfile);
-      saveStoredProfile(defaultProfile);
-      setIsLogged(true);
-      setLoggedInState(true);
+      setProfile(null);
+      setIsLogged(false);
     }
+    setIsInitialized(true);
   }, []);
 
   const handleLoginSuccess = (userProfile: StudentProfile) => {
     setProfile(userProfile);
     setIsLogged(true);
-    setActiveTab('carteirinha');
+    setActiveTab('carteirinha'); // Enters directly into Carteirinha Digital
   };
 
   const handleLogout = () => {
-    setLoggedInState(false);
+    clearActiveSession();
     setIsLogged(false);
+    setProfile(null);
+    setIsSettingsOpen(false);
   };
 
-  const handleUpdateProfile = (updated: StudentProfile) => {
+  const handleSaveProfile = (updated: StudentProfile) => {
     setProfile(updated);
-    saveStoredProfile(updated);
+    saveProfileToStorage(updated);
   };
 
   const getHeaderTitle = (): string => {
@@ -94,38 +78,47 @@ export default function App() {
     }
   };
 
-  // If user is not logged in, render the login view
+  // Wait for initial check
+  if (!isInitialized) {
+    return <div className="min-h-screen bg-[#F4F4F4]" />;
+  }
+
+  // If user is not logged in, ALWAYS render the Login View
   if (!isLogged || !profile) {
     return <LoginView onLoginSuccess={handleLoginSuccess} />;
   }
 
   return (
     <div className="min-h-screen bg-[#F4F4F4] text-slate-800 flex flex-col items-center">
-      {/* Mobile-first centered frame with authentic phone proportions on desktop */}
+      {/* Mobile-first centered frame with authentic phone proportions */}
       <div className="w-full max-w-md min-h-screen bg-[#F4F4F4] flex flex-col relative shadow-2xl shadow-slate-300/60 border-x border-slate-200/60">
-        {/* Sticky Blue Header with Back Arrow and Centered Tab Title */}
+        {/* Sticky Blue Header with Back Arrow, Centered Tab Title, and conditional Settings Gear on QRCode tab */}
         <Header
           title={getHeaderTitle()}
           onBack={handleHeaderBack}
           showBack={activeTab !== 'inicio'}
+          rightAction={
+            activeTab === 'qrcode' ? (
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="w-10 h-10 -mr-1 rounded-full flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition-all cursor-pointer"
+                title="Configurações"
+                aria-label="Abrir Configurações"
+              >
+                <Settings size={21} />
+              </button>
+            ) : null
+          }
         />
 
         {/* Main Content Area based on Active Tab */}
         <main className="flex-1 overflow-y-auto">
-          {activeTab === 'inicio' && (
-            <HomeView
-              profile={profile}
-              onUpdateProfile={handleUpdateProfile}
-              onOpenEditModal={() => setIsEditModalOpen(true)}
-              onLogout={handleLogout}
-            />
-          )}
+          {activeTab === 'inicio' && <HomeView profile={profile} />}
 
           {activeTab === 'carteirinha' && (
             <CardView
               profile={profile}
               onOpenQR={() => setIsQRModalOpen(true)}
-              onOpenEditModal={() => setIsEditModalOpen(true)}
             />
           )}
 
@@ -149,12 +142,13 @@ export default function App() {
           profile={profile}
         />
 
-        {/* Edit Profile & Photo Modal */}
-        <EditProfileModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
+        {/* Settings Modal triggered by Gear button in QRCode tab */}
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
           profile={profile}
-          onSave={handleUpdateProfile}
+          onSave={handleSaveProfile}
+          onLogout={handleLogout}
         />
       </div>
     </div>

@@ -26,7 +26,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, profi
   if (!isOpen) return null;
 
   const handleShare = () => {
-    const text = `🎓 Carteirinha Nostalgia: ${profile.nome} ${profile.sobrenome} - ${profile.curso} (${profile.matricula}). "Turma de sempre! 🎓"`;
+    const text = `🎓 Carteirinha Nostalgia: ${profile.nome} ${profile.sobrenome} - ${profile.curso} (${profile.matricula}). "4ºB"`;
     navigator.clipboard?.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -48,7 +48,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, profi
             <GraduationCap size={32} className="text-amber-300" />
           </div>
 
-          <h2 className="text-xl font-bold tracking-tight">Turma de sempre! 🎓</h2>
+          <h2 className="text-xl font-bold tracking-tight">4ºB</h2>
           <p className="text-blue-100 text-xs mt-1">Leitura de QR Code Concluída</p>
         </div>
 

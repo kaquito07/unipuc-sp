@@ -5,12 +5,14 @@ interface HeaderProps {
   title: string;
   onBack?: () => void;
   showBack?: boolean;
+  rightAction?: React.ReactNode;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   title,
   onBack,
   showBack = true,
+  rightAction,
 }) => {
   return (
     <header className="sticky top-0 z-30 w-full bg-[#3B82F6] text-white shadow-sm">
@@ -33,8 +35,10 @@ export const Header: React.FC<HeaderProps> = ({
           {title}
         </h1>
 
-        {/* Balance spacer on the right */}
-        <div className="w-10" />
+        {/* Right action slot (e.g. Settings gear on QRCode tab) */}
+        <div className="w-10 flex items-center justify-end">
+          {rightAction || null}
+        </div>
       </div>
     </header>
   );
